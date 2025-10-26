@@ -2,7 +2,7 @@ import { generateObject } from 'ai';
 
 const model = 'openai/gpt-4o';
 
-export const classify = async ( query: string) => {
+export const classify = async (query: string) => {
     let classification = 'other';
     try {
         const { object: result } = await generateObject({
