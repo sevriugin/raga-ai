@@ -13,16 +13,17 @@ import { findRelevantContent } from '@/lib/ai/embedding';
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
-const system_message = `You are a helpful assistant. Check your knowledge base before answering any questions.
-    Only respond to questions using information from tool calls.
-    if no relevant information is found in the tool calls, respond, "Sorry, I don't know."`;
+const system_messages = [
+    `You are a helpful assistant. Check your knowledge base before answering any questions. Only respond to questions using information from tool calls. if no relevant information is found in the tool calls, respond, "Sorry, I don't know."`,
+    `You are a helpful assistant. Check your knowledge base before answering questions about the user. For, example, if user asked "What is my favorite food?" For the user related questions only respond to them using information from tool calls. if no relevant information is found in the tool calls, respond, "Sorry, I don't know."`
+]
 
 export async function POST(req: Request) {
     const { messages }: { messages: UIMessage[] } = await req.json();
 
     const result = streamText({
         model: openai('gpt-4o'),
-        system: system_message,
+        system: system_messages[1],
         messages: convertToModelMessages(messages),
         stopWhen: stepCountIs(5),
         tools: {
