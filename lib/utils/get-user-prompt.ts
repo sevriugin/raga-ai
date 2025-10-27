@@ -1,11 +1,15 @@
-import { convertToModelMessages, UIMessage, TextPart } from 'ai';
+import { convertToModelMessages, UIMessage, TextPart, ModelMessage } from 'ai';
 
 /**
  * Get the last user message from the message array.
  * @param messages
  */
 export const getUserPrompt = (messages: UIMessage[]) => {
-    const lastUser = [...convertToModelMessages(messages)]
+    return getUserPromptFromModelMessages(convertToModelMessages(messages));
+}
+
+export const getUserPromptFromModelMessages = (messages: ModelMessage[]): string => {
+    const lastUser = [...messages]
         .reverse()
         .find(m => m.role === 'user');
 

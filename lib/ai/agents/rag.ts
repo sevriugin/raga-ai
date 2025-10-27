@@ -53,9 +53,8 @@ export const agentRag = new Agent({
     prepareStep: async ({ stepNumber, steps }) => {
         const previousToolCalls = steps.flatMap(step => step.toolCalls);
         const previousResults = steps.flatMap(step => step.toolResults);
-        console.log('[Rag Agent] Step Number: ', stepNumber);
-        console.log('[Rag Agent] Previous tool calls: ', previousToolCalls.length);
-        console.log('[Rag Agent] Previous results: ', previousResults.length);
+        console.log(`[Web Agent] Step Number: ${stepNumber} previous tool calls/results: ${previousToolCalls.length}/${previousResults.length}` );
+
         // Continue with default settings
         return {};
     },
