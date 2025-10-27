@@ -1,8 +1,9 @@
 import {embed, embedMany} from 'ai';
 import {openai} from '@ai-sdk/openai';
 import {db} from '../db';
-import {cosineDistance, desc, gt, sql} from 'drizzle-orm';
+import {cosineDistance, desc, eq, gt, sql} from 'drizzle-orm';
 import {embeddings} from '../db/schema/embeddings';
+import {resources} from '../db/schema/resources';
 
 const embeddingModel = openai.embedding('text-embedding-ada-002');
 
@@ -35,16 +36,24 @@ export const generateEmbedding = async (value: string): Promise<number[]> => {
 
 export const findRelevantContent = async (userQuery: string) => {
     const userQueryEmbedded = await generateEmbedding(userQuery);
-    const similarity = sql<number>`1 - (
-    ${cosineDistance(
-            embeddings.embedding,
-            userQueryEmbedded,
-    )}
+
+    // similarity between a query and an embedding row
+    const rowSimilarity = sql<number>`1 - (
+        ${cosineDistance(embeddings.embedding, userQueryEmbedded)}
     )`;
+
+    // we want max similarity per resource across its embeddings
+    const maxSimilarity = sql<number>`max(${rowSimilarity})`;
+
     return db
-        .select({name: embeddings.content, similarity})
-        .from(embeddings)
-        .where(gt(similarity, 0.5))
-        .orderBy(t => desc(t.similarity))
+        .select({
+            content: resources.content,
+            similarity: maxSimilarity,
+        })
+        .from(resources)
+        .innerJoin(embeddings, eq(embeddings.resourceId, resources.id))
+        .groupBy(resources.id)
+        .having(gt(maxSimilarity, 0.5))
+        .orderBy(desc(maxSimilarity))
         .limit(4);
 };
